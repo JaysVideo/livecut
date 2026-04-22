@@ -1,0 +1,116 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.headerLabel {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.combineRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.exportingLabel {
+  font-size: 11px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.clip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.12s;
+}
+.clip:hover { border-color: var(--border2); }
+.clip[data-exporting="true"] {
+  border-color: var(--accent);
+  background: rgba(232,255,71,0.04);
+}
+
+.clipNum {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text3);
+  min-width: 24px;
+}
+
+.clipInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.clipName {
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.12s;
+}
+.clipName:hover { border-color: var(--border2); }
+
+.renameInput {
+  font-size: 13px;
+  padding: 2px 6px;
+  height: auto;
+}
+
+.clipMeta {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.clipActions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.clipActions button {
+  font-size: 11px;
+  padding: 4px 10px;
+}
+
+.combineBtn {
+  font-size: 11px !important;
+}

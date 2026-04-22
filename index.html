@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LiveCut — HLS Clip Tool</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/coi-serviceworker.js').then(reg => {
+          if (!crossOriginIsolated) location.reload();
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,121 @@
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionLabel {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.markRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.markGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.markBtn {
+  width: 100%;
+  justify-content: space-between;
+  display: flex;
+  align-items: center;
+}
+
+.markBtn kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  padding: 1px 4px;
+  color: var(--text2);
+}
+
+.nudgeRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+}
+
+.nudgeRow button {
+  font-size: 10px;
+  padding: 3px 0;
+  text-align: center;
+}
+
+.pointTime {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  padding: 2px 0;
+}
+.pointTime[data-set="true"] {
+  color: var(--accent);
+}
+
+.duration {
+  font-size: 12px;
+  color: var(--text2);
+  text-align: center;
+  padding: 4px;
+  background: var(--bg2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.duration strong { color: var(--text); }
+
+.warn { color: var(--red); }
+
+.quickRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.liveBtn {
+  color: var(--red);
+  border-color: var(--red);
+  animation: livePulse 2s ease-in-out infinite;
+}
+.liveBtn:hover:not(:disabled) {
+  background: rgba(255,69,69,0.1);
+  color: var(--red);
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.addRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.addRow input { flex: 1; }
+
+.warning {
+  font-size: 11px;
+  color: var(--accent2);
+  padding: 4px 8px;
+  background: rgba(255,107,53,0.08);
+  border: 1px solid rgba(255,107,53,0.3);
+  border-radius: var(--radius);
+}
