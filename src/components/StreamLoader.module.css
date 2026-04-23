@@ -105,3 +105,103 @@
   color: var(--text3);
   font-family: var(--font-mono);
 }
+
+/* RTSP/RTMP converter */
+.converterStep {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stepLabel {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent3);
+}
+
+.rtspInput {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 7px 10px;
+  outline: none;
+}
+.rtspInput:focus { border-color: var(--accent3); }
+
+.rtspWarn {
+  font-size: 10px;
+  color: var(--red);
+  font-family: var(--font-mono);
+}
+
+.cmdRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+}
+
+.cmdCode {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  word-break: break-all;
+  white-space: pre-wrap;
+  display: block;
+}
+
+.cmdPlaceholder {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text3);
+  padding: 2px 0;
+  font-style: italic;
+}
+
+.copyBtn {
+  background: none !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text3) !important;
+  font-size: 13px !important;
+  padding: 2px 7px !important;
+  cursor: pointer;
+  border-radius: var(--radius) !important;
+  flex-shrink: 0;
+  line-height: 1.2;
+  transition: all 0.12s;
+}
+.copyBtn:hover { border-color: var(--accent3) !important; color: var(--accent3) !important; background: none !important; }
+
+.useBtn {
+  background: var(--accent3) !important;
+  border: none !important;
+  color: #000 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 3px 10px !important;
+  cursor: pointer;
+  border-radius: var(--radius) !important;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.useBtn:hover { filter: brightness(1.15); }
+
+.rtspNote {
+  font-size: 10px;
+  color: var(--text3);
+  line-height: 1.5;
+}
+.rtspNote a { color: var(--accent3); }
+
