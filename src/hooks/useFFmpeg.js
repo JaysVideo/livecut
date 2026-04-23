@@ -132,57 +132,99 @@ async function cleanup(ff, files) {
 
 export async function exportClip(segments, inTime, outTime, onProgress) {
   const ff = await getFFmpeg()
-  const trimStart = Math.max(0, inTime - segments[0].start)
   const clipDuration = outTime - inTime
+  const seg0 = segments[0]
+  const isFmp4 = isFmp4Url(seg0?.url || '')
+  // For fmp4, offset relative to segment start; for TS, seek within concat
+  const trimStart = Math.max(0, inTime - (seg0.start || 0))
 
   onProgress?.({ phase: 'download', current: 0, total: segments.length })
 
-  // Get video input
-  const seg0 = segments[0]
-  const { inputFile, concatFile, segFiles, isFmp4 } = await buildInputFile(
+  const { inputFile, concatFile, segFiles } = await buildInputFile(
     ff, segments, seg0.initSegmentUrl, 'vseg',
   )
-  console.log(`[livecut] video: ${segFiles.length} segments, fmp4=${isFmp4}`)
+  console.log(`[livecut] clip video: ${segFiles.length} segs, fmp4=${isFmp4}`)
 
-  // Check for separate audio track
   const audioFrags = seg0.audioFrags
   const hasAudio = audioFrags?.length > 0
-
-  let audioInputFile = null
-  let audioConcatFile = null
-  let audioSegFiles = []
+  let audioInputFile = null, audioConcatFile = null, audioSegFiles = []
 
   if (hasAudio) {
-    console.log(`[livecut] separate audio track: ${audioFrags.length} fragments`)
+    console.log(`[livecut] clip separate audio: ${audioFrags.length} frags`)
     onProgress?.({ phase: 'download', current: segments.length, total: segments.length + audioFrags.length })
-    const audioResult = await buildInputFile(ff, audioFrags, seg0.audioInitSegmentUrl, 'aseg')
-    audioInputFile = audioResult.inputFile
-    audioConcatFile = audioResult.concatFile
-    audioSegFiles = audioResult.segFiles
+    const ar = await buildInputFile(ff, audioFrags, seg0.audioInitSegmentUrl, 'aseg')
+    audioInputFile = ar.inputFile; audioConcatFile = ar.concatFile; audioSegFiles = ar.segFiles
   }
 
   onProgress?.({ phase: 'encode' })
 
-  const videoArg = inputFile
-    ? ['-ss', String(trimStart), '-i', inputFile]
-    : ['-ss', String(trimStart), '-f', 'concat', '-safe', '0', '-i', concatFile]
-  const audioArg = hasAudio
-    ? (audioInputFile
-        ? ['-ss', String(trimStart), '-i', audioInputFile]
-        : ['-ss', String(trimStart), '-f', 'concat', '-safe', '0', '-i', audioConcatFile])
-    : []
-  const mapArgs = hasAudio ? ['-map', '0:v:0', '-map', '1:a:0'] : []
+  const mapArgs = hasAudio
+    ? ['-map', '0:v:0', '-map', '1:a:0']
+    : ['-map', '0:v:0', '-map', '0:a:0?']
 
-  await ff.exec([
-    ...videoArg,
-    ...audioArg,
-    '-t', String(clipDuration),
-    ...mapArgs,
-    '-c', 'copy',
-    '-avoid_negative_ts', 'make_zero',
-    '-movflags', '+faststart',
-    'output.mp4'
-  ])
+  if (isFmp4) {
+    // fMP4: use -itsoffset to align timestamp, then re-encode to eliminate black frame
+    const seg0Start = seg0.start || 0
+    const audioSeg0Start = audioFrags?.[0]?.start || seg0Start
+    const videoInput = inputFile || concatFile
+    const videoFmt   = inputFile ? [] : ['-f', 'concat', '-safe', '0']
+    if (hasAudio) {
+      const audioInput = audioInputFile || audioConcatFile
+      const audioFmt   = audioInputFile ? [] : ['-f', 'concat', '-safe', '0']
+      await ff.exec([
+        '-itsoffset', String(-seg0Start),
+        ...videoFmt, '-i', videoInput,
+        '-itsoffset', String(-audioSeg0Start),
+        ...audioFmt, '-i', audioInput,
+        '-ss', String(trimStart), '-t', String(clipDuration),
+        ...mapArgs,
+        '-vf', 'scale=-2:720',
+        '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '22',
+        '-b:v', '3500k', '-maxrate', '4000k', '-bufsize', '8000k',
+        '-c:a', 'aac', '-b:a', '128k',
+        '-avoid_negative_ts', 'make_zero', '-fps_mode', 'cfr',
+        '-movflags', '+faststart', '-brand', 'mp42',
+        'output.mp4'
+      ])
+    } else {
+      await ff.exec([
+        '-itsoffset', String(-seg0Start),
+        ...videoFmt, '-i', videoInput,
+        '-ss', String(trimStart), '-t', String(clipDuration),
+        '-map', '0:v:0', '-map', '0:a:0?',
+        '-vf', 'scale=-2:720',
+        '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '22',
+        '-b:v', '3500k', '-maxrate', '4000k', '-bufsize', '8000k',
+        '-c:a', 'aac', '-b:a', '128k',
+        '-avoid_negative_ts', 'make_zero', '-fps_mode', 'cfr',
+        '-movflags', '+faststart', '-brand', 'mp42',
+        'output.mp4'
+      ])
+    }
+  } else {
+    // TS: re-encode with seek, eliminates black frame from non-keyframe trim
+    const videoArg = inputFile
+      ? ['-ss', String(trimStart), '-i', inputFile]
+      : ['-ss', String(trimStart), '-f', 'concat', '-safe', '0', '-i', concatFile]
+    const audioArg = hasAudio
+      ? (audioInputFile
+          ? ['-ss', String(trimStart), '-i', audioInputFile]
+          : ['-ss', String(trimStart), '-f', 'concat', '-safe', '0', '-i', audioConcatFile])
+      : []
+    await ff.exec([
+      ...videoArg,
+      ...audioArg,
+      '-t', String(clipDuration),
+      ...mapArgs,
+      '-vf', 'scale=-2:720',
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '22',
+      '-b:v', '3500k', '-maxrate', '4000k', '-bufsize', '8000k',
+      '-c:a', 'aac', '-b:a', '128k',
+      '-avoid_negative_ts', 'make_zero', '-fps_mode', 'cfr',
+      '-movflags', '+faststart', '-brand', 'mp42',
+      'output.mp4'
+    ])
+  }
 
   const data = await ff.readFile('output.mp4')
   await cleanup(ff, [...segFiles, ...audioSegFiles])
@@ -224,7 +266,7 @@ export async function exportCombined(clips, onProgress) {
 
     onProgress?.({ phase: 'encode' })
 
-    const mapArgs = hasAudio ? ['-map', '0:v:0', '-map', '1:a:0'] : []
+    const mapArgs = hasAudio ? ['-map', '0:v:0', '-map', '1:a:0'] : ['-map', '0:v:0', '-map', '0:a:0?']
 
     if (!isFmp4 && !hasAudio) {
       const videoArg = inputFile
@@ -326,8 +368,10 @@ export async function exportCombined(clips, onProgress) {
     // All TS stream-copied parts — final concat is also stream copy, instant
     await ff.exec([
       '-f', 'concat', '-safe', '0', '-i', 'final_concat.txt',
-      '-c', 'copy',
+      '-c:v', 'copy', '-c:a', 'copy',
+      '-map', '0:v:0', '-map', '0:a:0?',
       '-movflags', '+faststart',
+      '-brand', 'mp42',
       'combined.mp4'
     ])
   } else {
@@ -338,7 +382,7 @@ export async function exportCombined(clips, onProgress) {
       '-vf', 'scale=-2:720',
       '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '22', '-b:v', '3500k', '-maxrate', '4000k', '-bufsize', '8000k',
       '-c:a', 'aac', '-b:a', '128k',
-      '-fps_mode', 'cfr', '-movflags', '+faststart',
+      '-fps_mode', 'cfr', '-movflags', '+faststart', '-brand', 'mp42',
       'combined.mp4'
     ])
   }
