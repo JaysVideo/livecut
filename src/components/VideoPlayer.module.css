@@ -117,13 +117,20 @@
 
 .controls {
   display: flex;
-  gap: 8px;
+  gap: 5px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .ctrlBtn {
-  font-size: 12px;
-  padding: 5px 12px;
+  font-size: 11px;
+  padding: 5px 9px;
+}
+
+.active {
+  border-color: var(--accent3) !important;
+  color: var(--accent3) !important;
+  background: rgba(255,200,0,0.08) !important;
 }
 
 .unmuted {
